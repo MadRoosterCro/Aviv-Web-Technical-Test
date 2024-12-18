@@ -57,16 +57,22 @@ paths:
         name: id
         in: path
         required: true
-        description: The id for the listing to get price history from.
+        description: The ID of the listing to update.
     put:
       summary: Update a listing
       description: Update a listing described by its identifier.
       tags:
         - listings
       operationId: upsert-listing
+      deprecated: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ListingWrite"
       responses:
         "200":
-          description: Ok
+          description: OK
           content:
             application/json:
               schema:
@@ -77,11 +83,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/APIError"
+    patch:
+      summary: Partially update a listing
+      description: Update specific fields of a listing without replacing the entire resource.
+      tags:
+        - listings
+      operationId: patch-listing
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ListingWrite"
+              $ref: "#/components/schemas/ListingPatch"
+      responses:
+        "200":
+          description: Listing updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+        "404":
+          description: Listing not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
   "/listings/{id}/prices":
     parameters:
       - schema:
@@ -89,12 +114,13 @@ paths:
         name: id
         in: path
         required: true
-        description: The id for the listing to get price history from.
+        description: The ID of the listing to get price history from.
     get:
       summary: Get listing price history
       description: Get the price history of a listing
       tags:
         - listings
+      operationId: get-listing-prices
       responses:
         "200":
           description: OK
@@ -104,7 +130,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Price"
-      operationId: get-listing-prices
 components:
   schemas:
     Listing:
@@ -113,30 +138,23 @@ components:
         - $ref: "#/components/schemas/ListingWrite"
     ListingRead:
       type: object
-      name: Listing (read only)
       description: Read-only fields of the listing model
       required:
         - id
         - created_date
         - updated_date
-      additionalProperties: false
       properties:
         id:
-          name: Identifier
-          description: The listing unique identifier.
+          description: The unique identifier for the listing.
           type: integer
-          example: 1234
-          minimum: 0
         created_date:
-          name: Creation date
-          description: "The date at which the listing was produced, following RFC 3339."
+          description: The creation date of the listing.
           type: string
-          example: "1970-01-01T00:00:00.000Z"
+          format: date-time
         updated_date:
-          name: Last update date
-          description: "The date at which the listing was last updated, following RFC 3339."
+          description: The last update date of the listing.
           type: string
-          example: "1970-01-01T00:00:00.000Z"
+          format: date-time
     ListingWrite:
       type: object
       required:
@@ -148,85 +166,54 @@ components:
         - surface_area_m2
         - rooms_count
         - bedrooms_count
-      additionalProperties: false
       properties:
         name:
-          name: Name
-          description: A user friendly name for the listing.
           type: string
-          minLength: 1
         postal_address:
           $ref: "#/components/schemas/PostalAddress"
         description:
-          name: Description
-          description: A user friendly description for the listing.
           type: string
-          minLength: 1
         building_type:
-          name: Building type
-          description: The type of building the listing referers to.
           type: string
           enum:
             - STUDIO
             - APARTMENT
             - HOUSE
         latest_price_eur:
-          name: Price
-          description: "The price of the listing, in euros."
           type: number
-          minimum: 0
-          example: 380000
         surface_area_m2:
-          name: Surface area
-          description: "The surface of the listing, in square meters."
           type: number
-          minimum: 0
-          example: 43
         rooms_count:
-          name: Rooms count
-          description: The number of rooms of the listing.
           type: integer
-          minimum: 1
-          example: 2
         bedrooms_count:
-          name: Bedrooms count
-          description: The number of bedrooms of the listing.
           type: integer
-          minimum: 0
-          example: 1
         contact_phone_number:
-          name: Contact phone number
-          description: "Listing main contact phone number, following the E.164 standard."
           type: string
-          pattern: '^\+[1-9]\d{1,14}$'
-    Price:
-      allOf:
-        - $ref: "#/components/schemas/PriceRead"
-        - $ref: "#/components/schemas/PriceWrite"
-    PriceRead:
-      name: Price (read-only)
-      description: Read-only fields for a price.
+    ListingPatch:
       type: object
-      required:
-        - created_date
-      additionalProperties: false
       properties:
-        created_date:
-          name: Creation date
-          description: "The date at which the listing was produced, following RFC 3339."
+        name:
           type: string
-          example: "1970-01-01T00:00:00.000Z"
-    PriceWrite:
-      type: object
-      required:
-        - price_eur
-      additionalProperties: false
-      properties:
-        price_eur:
-          name: Price
-          description: "A price, expressed in euros."
+        postal_address:
+          $ref: "#/components/schemas/PostalAddress"
+        description:
+          type: string
+        building_type:
+          type: string
+          enum:
+            - STUDIO
+            - APARTMENT
+            - HOUSE
+        latest_price_eur:
+          type: number
+        surface_area_m2:
+          type: number
+        rooms_count:
           type: integer
-          example: 340000
+        bedrooms_count:
+          type: integer
+        contact_phone_number:
+          type: string
     PostalAddress:
       type: object
       required:
@@ -234,38 +221,27 @@ components:
         - postal_code
         - city
         - country
-      additionalProperties: false
       properties:
         street_address:
-          name: Street address
           type: string
-          description: The street address of the postal address.
-          example: "48, boulevard des capucins"
-          minLength: 1
         postal_code:
-          name: Postal code
           type: string
-          description: The postal code of the postal address.
-          example: "10294"
-          minLength: 1
         city:
-          name: City
           type: string
-          description: The city of the postal address.
-          example: Paris
-          minLength: 1
         country:
-          name: Country
           type: string
-          description: "The country of the Postal Address, as a ISO 3166-1 alpha-2 country code."
-          example: FR
           minLength: 2
           maxLength: 2
+    Price:
+      type: object
+      properties:
+        price_eur:
+          type: number
+        created_date:
+          type: string
+          format: date-time
     APIError:
       type: object
-      required:
-        - message
-      additionalProperties: false
       properties:
         message:
           type: string

@@ -16,3 +16,8 @@ export const updateListing: AWSFunction = {
   handler: `${handlerPath(__dirname)}/handler.updateListing`,
   events: [{ http: buildEventDefinition("put", "/listings/{id}") }],
 };
+
+export const patchListing: AWSFunction = {
+  handler: `${handlerPath(__dirname)}/handler.patchListing`,
+  events: [{ http: buildEventDefinition("patch", "/listings/{id}") }],
+};

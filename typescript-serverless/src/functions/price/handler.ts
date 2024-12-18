@@ -15,13 +15,9 @@ export const getListingPrices = functionHandler<Price[]>(
 
     const priceHistory = await repository.getListingPriceHistory(listingId);
 
-    if (!priceHistory.length) {
-      throw new NotFound(`No price history found for listing ID ${listingId}`);
-    }
-
     return {
       statusCode: 200,
-      response: priceHistory,
+      response: priceHistory || [],
     };
   }
 );
