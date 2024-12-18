@@ -1,21 +1,30 @@
 import styles from './price-history-card.module.scss';
 
-const PriceHistoryCard = () => {
+interface PriceHistoryCardProps {
+  prices: { created_date: string; price_eur: string }[];
+}
+
+const PriceHistoryCard: React.FC<PriceHistoryCardProps> = ({ prices }) => {
   return (
     <div className={styles['container']}>
       <table className={styles['price-card']}>
-        <tbody>
+        <thead>
           <tr className={styles['price-card__header']}>
             <th scope="col">Date</th>
-            <th scope="col">Price (eur)</th>
+            <th scope="col">Price (EUR)</th>
           </tr>
-          <tr>
-            <td>01/01/2022</td>
-            <td>500 000</td>
-          </tr>
+        </thead>
+        <tbody>
+          {prices.map((price, index) => (
+            <tr key={index}>
+              <td>{new Date(price.created_date).toLocaleDateString()}</td>
+              <td>€{Number(price.price_eur).toLocaleString()}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
   );
 };
+
 export default PriceHistoryCard;
